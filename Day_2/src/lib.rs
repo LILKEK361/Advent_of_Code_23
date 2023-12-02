@@ -1,7 +1,4 @@
-pub fn add(left: usize, right: usize) -> usize {
-    left + right
-}
-
+pub mod part1;
 #[cfg(test)]
 mod tests {
     use super::*;
