@@ -17,104 +17,49 @@ Game 5: 6 red, 1 blue, 3 green; 2 blue, 1 red, 2 green";
 
 
 }
-
-pub fn color_check(key: &str, vaule: &i32, blue: i32, red: i32, green: i32) -> bool {
-    match key{
-        "blue" => if(vaule > &blue ){
-            false
-        }else { true}
-        "red" => if(vaule > &red ){
-            false
-        }else { true}
-        "green" => if(vaule > &green ){
-            false
-        }else { true},
-        _ => {false}
-    }
+fn count_char(s: &str, c: char) -> usize {
+    s.chars().filter(|&x| x == c).count()
 }
+
 #[tracing::instrument]
 pub fn process_input(input: &str, blue: i32, red: i32, green: i32) -> i32 {
-    let mut result: Vec<i32> = vec![];
 
-    let games = input.lines();
+    let mut lines = input.lines();
+    let mut finalgames = vec![];
 
-    for mut single in games {
-        let mut line_string: Vec<&str> = single.split_whitespace().collect();
-        let mut overall: i32 = 0;
-        let game_id = line_string[1].replace(":", "");
+    for line in lines {
 
-        let color = ["red","green", "blue"];
-        let mut sets: Vec<Vec<String>> = vec![];
-        let mut temp: Vec<String> = vec![];
+        let mut blueCubes = 0;
+        let mut redCubes = 0;
+        let mut greencubes = 0;
 
-        for i in 2..line_string.len() {
-            if (!line_string[i].contains(";")) {
-                temp.push(line_string[i].parse::<String>().unwrap())
-            } else if (i == line_string.len()) {
-                temp.push(line_string[i].parse::<String>().unwrap());
-                sets.push(temp.clone());
-            } else {
-                temp.push(line_string[i].parse::<String>().unwrap());
-                sets.push(temp.clone());
-                temp = vec![];
+        let game = line.split_whitespace().collect::<Vec<&str>>();
+
+        let game_id = game[1];
+
+        let sets = (count_char(line, ';') + 1) as i32 ;
+
+
+
+        for i in 2..game.len() {
+            if(game[i].eq( "green")){
+                greencubes += (&game[i - 1]).parse::<i32>().unwrap()
+            }
+            if(game[i].eq("blue")){
+                blueCubes += (&game[i - 1]).parse::<i32>().unwrap()
+            }
+            if(game[i].eq("red")){
+                redCubes += (&game[i - 1]).parse::<i32>().unwrap()
             }
         }
-        for set in sets.iter() {
-            let mut points: HashMap<&str, i32> = HashMap::from([
-                ("red", 0),
-                ("green", 0),
-                ("blue", 0),
-            ]);
-
-            for i in 0..set.len() {
-                for (key, value) in points.clone().iter() {
-                    if (set[i].contains(key)) {
-                        let newnum = set[(i - 1)].parse::<i32>().unwrap();
-                        let oldnum = value;
-                        let fin = oldnum + newnum;
-                        if(color_check(key, &fin, blue, red, green)){
-                            *points.entry(key).or_insert(0) += fin;
-                        }else {
-
-                            break
-                        }
-
-
-                    }
-
-                }
-
-            }
-            let mut ch: i32 = 0;
-            for (key, value) in points.iter()  {
-                if(color_check(key, value, blue, red, green)){
-                        ch += 1;
-                }else {
-                    println!("Not valid");
-                    break
-                }
-            }
-            if(ch == 3){
-                overall += 1
-            }
-
-            if(overall == sets.len().try_into().unwrap()){
-                result.push(game_id.parse::<i32>().unwrap());
-            }
-
-        }
-
 
     }
-    let mut numb = 0;
-    for i in result {
-        numb += i;
+    let mut finalnumber = 0;
+    for i in finalgames{
+        finalnumber += i.parse::<i32>().unwrap();
     }
 
-    numb
+    finalnumber
 
 }
 
-pub fn get_str_to_i32(input: &str) -> i32 {
-    input.parse::<i32>().unwrap()
-}
