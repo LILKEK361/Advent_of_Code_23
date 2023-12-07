@@ -1,7 +1,7 @@
 use std::io;
 
 use nom::bytes::complete::tag;
-use nom::character::complete::line_ending;
+use nom::character::complete::{line_ending, newline};
 use nom::IResult;
 use nom::multi::separated_list1;
 use nom::sequence::preceded;
@@ -46,27 +46,38 @@ impl<'a> Card<'a> {
 
 
 pub fn process_input(input: &str) -> Result<i32, io::Error> {
-    let cards = card_parser(input).unwrap();
+    let cards = card_parser(input) ;
     let mut final_num = 0;
-    for mut card in cards.1 {
+    for mut card in cards {
         final_num += card.valid();
     }
 
     Ok(final_num)
 }
 
-pub fn card_parser(input: &str) -> IResult<&str, Vec<Card>> {
-    let (input, cards) = separated_list1(line_ending, card)(input)?;
-    Ok((input, cards))
+pub fn card_parser(input: &str) -> Vec<Card>  {
+    let mut cards = vec![];
+    for mut line in input.lines() {
+        let mut card = line.split_whitespace().collect::<Vec<&str>>();
+        let mut spit = false;
+        let mut winning = vec![];
+        let mut numbers = vec![];
+        for i in 2..card.len()   {
+
+            if !card[i].eq("|") && !spit {
+                winning.push(card[i])
+            }else if card[i].eq("|") {
+                spit = true;
+            }else{
+                numbers.push(card[i])
+            }
+        }
+        cards.push(Card {
+            winningnumbers: winning,
+            points: 0,
+            numbers,
+        })
+    }
+ cards
 }
 
-pub fn card(input: &str) -> IResult<&str, Card> {
-    let mut t = preceded(tag(":"), separated_list1(tag("|"), numebrs))(input)?;
-
-    Ok((input, Card { winningnumbers: t.1[0].clone(), points: 0, numbers: t.1[1].clone() }))
-}
-
-pub fn numebrs(input: &str) -> IResult<&str, Vec<&str>> {
-    let numbers = input.split(" ").collect::<Vec<&str>>();
-    Ok((input, numbers))
-}
