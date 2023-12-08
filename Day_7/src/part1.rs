@@ -61,8 +61,9 @@ pub struct Hand<'a> {
 
 impl<'a> Hand<'a> {
 
+    fn worthcheck(&self) -> i32 {
 
-
+    }
 }
 
 pub fn process_input(input: &str) -> i32{
@@ -76,7 +77,7 @@ pub fn process_input(input: &str) -> i32{
 pub fn hand_parser(input: &str) -> IResult<&str, Hand> {
     let input_split = input.split_whitespace().collect::<Vec<&str>>();
     let bit = input_split[1];
-    let  hand = Vec::from_iter(input_split[0]);
+    let  hand = input_split[0].chars().collect();
 
     Ok((input, Hand {
         rank: None,
@@ -84,4 +85,6 @@ pub fn hand_parser(input: &str) -> IResult<&str, Hand> {
         hand,
         points: None,
     }))
+
 }
+
