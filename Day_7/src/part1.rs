@@ -67,7 +67,20 @@ impl<'a> Hand<'a> {
 }
 
 pub fn process_input(input: &str) -> i32{
+    /*
+    Plan:
+    Create vec of cards
+    Check if the hands are equal worth
+               Check for char in Hand
 
+    Push worth_array
+    for i in 0..wortharray_len()
+        finalnum += wortharray_len[i] * i + 1;
+
+    format!("", finalnum)
+
+
+    */
     let (input, hands) = separated_list0(line_ending, hand_parser)(input).unwrap();
     hands;
     0
