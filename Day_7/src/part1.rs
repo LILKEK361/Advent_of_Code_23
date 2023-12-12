@@ -1,48 +1,29 @@
-use std::fs::set_permissions;
-use nom::bytes::complete::tag;
-use nom::character::complete::{digit0, line_ending, newline};
-use nom::character::is_alphabetic;
-use nom::IResult;
-use nom::multi::{separated_list0, separated_list1};
-use nom::sequence::preceded;
-
+use std::collections::HashMap;
 
 #[cfg(test)]
 mod tests {
     use super::*;
+
     #[test]
     fn test() {
-
         let input = "32T3K 765
 T55J5 684
 KK677 28
 KTJJT 220
 QQQJA 483";
+        process_input(input);
+        let highest_hand = "";
 
-        let final_n = process_input(input).to_string();
 
-        assert_eq!("6440",final_n);
+        assert_eq!("2oK", highest_hand);
     }
 }
 
-enum Card {
-    Two = 2,
-    Three = 3,
-    Four = 4,
-    Five = 5,
-    Six = 6,
-    Seven = 7,
-    Eight = 8,
-    Nine = 9,
-    Ten = 10,
-    Bub = 11,
-    Queen = 12,
-    King = 13,
-    Ass = 14,
-}
-enum HandTypes{
+
+enum HandTypes {
     Five
 }
+
 
 /*
 Five of a kind
@@ -55,49 +36,71 @@ Highest card
 pub struct Hand<'a> {
     rank: Option<i32>,
     bit: &'a str,
-    hand: Vec<&'a char>,
+    hand: Vec<&'a str>,
+    hand_type: &'a str,
     points: Option<i32>,
 }
 
+pub fn hand_parser(input: &str) -> Hand {
+    Hand::from_str(input)
+}
 impl<'a> Hand<'a> {
+    fn from_str(s: &str) -> Hand {
+        let input_split = s.split_whitespace().collect::<Vec<&str>>();
 
-    fn worthcheck(&self) -> i32 {
+        let bit = input_split[1];
+        let hand = input_split[0].split("").collect::<Vec<&str>>();
 
+        Hand {
+            rank: None,
+            bit,
+            hand,
+            hand_type: Hand::get_hand(input_split[0]),
+            points: None,
+        }
+    }
+
+    fn get_hand(hand: &str) -> &str {
+        let mut hand_type = "";
+        let mut map: HashMap<String, i32> = HashMap::new();
+        //Looping trough the hand to see how often a card is in the hand
+        for card in hand.chars() {
+
+            &map.entry(String::from(card.clone())).and_modify(|e| *e += 1).or_insert_with_key(|card| 1);
+
+        }
+        //Sorting the Cards so the most often card is first
+        let mut hash_vec: Vec<(&String, &i32)> = map.iter().collect();
+        hash_vec.sort_by(|a, b| b.1.cmp(a.1));
+
+        //Decide witch Hand_type a player has
+        match hash_vec[0].1 {
+            4 => hand_type = "4ok",
+            3 => {
+                if (hash_vec.len() > 2) {
+                    hand_type = "3oK";
+                } else if (hash_vec.len() == 2) {
+                    if (*hash_vec[1].1 as i32 == 2) {
+                        hand_type = "FH";
+                    }
+                }
+            }
+            2 => hand_type = "2oK",
+            1 => hand_type = "HC",
+
+            &_ => {}
+        }
+        hand_type
     }
 }
 
-pub fn process_input(input: &str) -> i32{
-    /*
-    Plan:
-    Create vec of cards
-    Check if the hands are equal worth
-               Check for char in Hand
-
-    Push worth_array
-    for i in 0..wortharray_len()
-        finalnum += wortharray_len[i] * i + 1;
-
-    format!("", finalnum)
-
-
-    */
-    let (input, hands) = separated_list0(line_ending, hand_parser)(input).unwrap();
-    hands;
-    0
+pub fn sort_hand_by_worth(Hands: Vec<Hand>) -> Vec<Hand>{
 
 }
 
-pub fn hand_parser(input: &str) -> IResult<&str, Hand> {
-    let input_split = input.split_whitespace().collect::<Vec<&str>>();
-    let bit = input_split[1];
-    let  hand = input_split[0].chars().collect();
-
-    Ok((input, Hand {
-        rank: None,
-        bit,
-        hand,
-        points: None,
-    }))
-
+pub fn process_input(input: &str) {
+    let Hands = input.lines().map(|line| Hand::from_str(line)).collect::<Vec<Hand>>();
+    let sorted_hand = sort_hand_by_worth(Hands)
 }
+
 
