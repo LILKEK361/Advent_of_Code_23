@@ -75,6 +75,7 @@ impl<'a> Hand<'a> {
 
         //Decide witch Hand_type a player has
         match hash_vec[0].1 {
+            5 => hand_type = "5ok",
             4 => hand_type = "4ok",
             3 => {
                 if (hash_vec.len() > 2) {
@@ -93,14 +94,37 @@ impl<'a> Hand<'a> {
         hand_type
     }
 }
+//Rework
+pub fn sort_hand_by_worth(mut hands: Vec<Hand>) -> Vec<Hand>{
+    let order = vec!["HC", "2oK", "3oK", "4oK", "5oK"];
+    let mut swapped;
+    loop {
 
-pub fn sort_hand_by_worth(Hands: Vec<Hand>) -> Vec<Hand>{
+        swapped = false;
+
+        for i in 0..(hands.len() - 1) {
+            if order.iter().find(hands[i].hand_type).unwrap() > order.iter().find(hands[i + 1].hand_type).unwrap(){
+
+                hands.swap(i, i + 1);
+                swapped = true;
+
+            } else if order.iter().find(hands[i].hand_type).unwrap() == order.iter().find(hands[i + 1].hand_type).unwrap() {
+
+            }
+        }
+
+        if !swapped {
+            break;
+        }
+    }
+
+    hands
 
 }
 
 pub fn process_input(input: &str) {
     let Hands = input.lines().map(|line| Hand::from_str(line)).collect::<Vec<Hand>>();
-    let sorted_hand = sort_hand_by_worth(Hands)
+    let sorted_hand = sort_hand_by_worth(Hands);
 }
 
 
