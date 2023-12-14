@@ -1014,16 +1014,9 @@ TA4Q3 723
         assert_eq!("249483956", final_num);
     }
 }
-/*
-Five of a kind
-Four of a kind
-Full House
-Three of a kind
-Two of a kind
-Highest card
- */
 
 #[derive(Clone)]
+#[derive(PartialEq)]
 pub struct Hand<'a> {
     rank: Option<i32>,
     bit: &'a str,
@@ -1035,6 +1028,7 @@ pub struct Hand<'a> {
 pub fn hand_parser(input: &str) -> Hand {
     Hand::from_str(input)
 }
+
 impl<'a> Hand<'a> {
     fn from_str(s: &str) -> Hand {
         let input_split = s.split_whitespace().collect::<Vec<&str>>();
@@ -1094,7 +1088,9 @@ impl<'a> Hand<'a> {
 
 }
 //Rework
-pub fn sort_hand_by_worth(hands: Vec<Hand>) -> Vec<Hand> {
+pub fn sort_hand_by_worth(mut hands: Vec<Hand>) -> Vec<Hand> {
+    let mut temp = hands;
+    let order = vec!["HC", "1P", "2P", "3oK", "FH", "4oK", "5oK"];
     let card_worth = HashMap::from([
         ("2", 2),
         ("3", 3),
@@ -1111,55 +1107,57 @@ pub fn sort_hand_by_worth(hands: Vec<Hand>) -> Vec<Hand> {
         ("A", 14),
     ]);
 
-    let order = vec!["HC", "1P", "2P", "3oK", "FH", "4oK", "5oK"];
-
-    let mut sorted_Hands: HashMap<&str, Vec<Hand>> = HashMap::from([
-        ("5oK", vec![]),
-        ("4oK", vec![]),
-        ("FH", vec![]),
-        ("3oK",  vec![]),
-        ("2P", vec![]),
-        ("1P", vec![]),
-        ("HC", vec![])
-    ]);
-
-    for hand in hands {
-        sorted_Hands.entry(hand.hand_type)
-            .and_modify(|mut e| e.push(hand));
-    }
 
     let mut final_order: Vec<Hand> = vec![];
     let mut final_sort: HashMap<&str, Vec<Hand>> = HashMap::new();
+    let mut swapped;
 
-    //Need to sort the Cards by worth
-    //TODO
+    loop {
 
+        swapped = false;
 
+        for i in 0..(temp.len() - 1) {
+            if order.iter().position(|&x| x == temp[i].hand_type) > order.iter().position(|&x| x == temp[i + 1].hand_type){
 
-    for ty in order  {
-        for hand in &sorted_Hands[ty] {
-            final_order.push(hand.clone());
+                temp.swap(i, i + 1);
+                swapped = true;
+
+            } else if order.iter().position(|&x| x == temp[i].hand_type) == order.iter().position(|&x| x == temp[i + 1].hand_type) {
+                for (j, card) in temp[i].clone().hand.iter().enumerate() {
+                    if(card_worth.get(card) > card_worth.get(temp[i + 1].hand[j])){
+                        temp.swap(i, i + 1);
+                    }else if card_worth.get(card) < card_worth.get(temp[i + 1].hand[j]){
+                        temp.swap(i + 1, i);
+                    }
+                }
+            }
+        }
+
+        if !swapped {
+            break;
         }
     }
 
 
-
-    final_order
+    temp
 
 }
+
+
+
 
 pub fn process_input(input: &str) -> String {
     let hands = input.lines().map(|line| Hand::from_str(line)).collect::<Vec<Hand>>();
     let sorted_hand = sort_hand_by_worth(hands);
-
     let mut final_num: i32 = 0;
-    for i in 0..sorted_hand.len()  {
+
+    for (i, hand) in sorted_hand.iter().enumerate() {
         let rank: i32 = i as i32 + 1;
-        final_num = final_num +  (sorted_hand[i].bit.parse::<i32>().unwrap() * rank);
+            final_num += hand.bit.parse::<i32>().unwrap() * rank
     }
-
     final_num.to_string()
-
 }
+
+
 
 
