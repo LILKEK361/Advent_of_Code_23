@@ -1,5 +1,9 @@
 use std::collections::HashMap;
+use std::fmt;
 use std::ptr::hash;
+
+use std::net::Shutdown::Write;
+use nom::character::is_digit;
 
 #[cfg(test)]
 mod tests {
@@ -1034,7 +1038,8 @@ impl<'a> Hand<'a> {
         let input_split = s.split_whitespace().collect::<Vec<&str>>();
 
         let bit = input_split[1];
-        let hand = input_split[0].split("").collect::<Vec<&str>>();
+        let numbers = Vec::from(input_split[0]) ;
+        let hand = numbers.into_iter().map(|n| n.to_string()).collect::<Vec<&str>>();
 
         Hand {
             rank: None,
@@ -1090,7 +1095,9 @@ impl<'a> Hand<'a> {
 //Rework
 pub fn sort_hand_by_worth(mut hands: Vec<Hand>) -> Vec<Hand> {
     let mut temp = hands;
-    let order = vec!["HC", "1P", "2P", "3oK", "FH", "4oK", "5oK"];
+
+    let order =HashMap::from([
+                                 ("HC", 0),( "1P", 1), ("2P", 2), ("3oK", 3), ("FH",4 ), ("4oK", 5), ("5oK", 6)]);
     let card_worth = HashMap::from([
         ("2", 2),
         ("3", 3),
@@ -1100,7 +1107,7 @@ pub fn sort_hand_by_worth(mut hands: Vec<Hand>) -> Vec<Hand> {
         ("7", 7),
         ("8", 8),
         ("9", 9),
-        ("10", 10),
+        ("T", 10),
         ("J", 11),
         ("Q", 12),
         ("K", 13),
@@ -1116,26 +1123,38 @@ pub fn sort_hand_by_worth(mut hands: Vec<Hand>) -> Vec<Hand> {
 
         swapped = false;
 
-        for i in 0..(temp.len() - 1) {
-            if order.iter().position(|&x| x == temp[i].hand_type) > order.iter().position(|&x| x == temp[i + 1].hand_type){
+        for i in 0..(temp.len() - 1 ) {
+            if(i > temp.len()) {
+                break
+            }
+            if order.get( temp[i].hand_type).unwrap() > order.get(temp[i + 1].hand_type).unwrap(){
 
-                temp.swap(i, i + 1);
+                let temp_hand = temp[i].clone();
+                temp[i] = temp[i + 1].clone();
+                temp[i + 1] = temp_hand;
                 swapped = true;
 
-            } else if order.iter().position(|&x| x == temp[i].hand_type) == order.iter().position(|&x| x == temp[i + 1].hand_type) {
+            } else if temp[i].hand_type.eq(temp[i + 1].hand_type) {
                 for (j, card) in temp[i].clone().hand.iter().enumerate() {
-                    if(card_worth.get(card) > card_worth.get(temp[i + 1].hand[j])){
-                        temp.swap(i, i + 1);
-                    }else if card_worth.get(card) < card_worth.get(temp[i + 1].hand[j]){
-                        temp.swap(i + 1, i);
+                    if(!temp[i].hand[j].is_empty()){
+                        if(card_worth.get(card).unwrap() > card_worth.get(temp[i + 1].hand[j]).unwrap()){
+                            let temp_hand = temp[i].clone();
+                            temp[i] = temp[i + 1].clone();
+                            temp[i + 1] = temp_hand;
+                            swapped = true;
+                        }
                     }
                 }
             }
-        }
+            if !swapped {
+                break;
+            }
 
+        }
         if !swapped {
             break;
         }
+
     }
 
 
@@ -1152,6 +1171,7 @@ pub fn process_input(input: &str) -> String {
     let mut final_num: i32 = 0;
 
     for (i, hand) in sorted_hand.iter().enumerate() {
+
         let rank: i32 = i as i32 + 1;
             final_num += hand.bit.parse::<i32>().unwrap() * rank
     }
